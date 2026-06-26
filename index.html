@@ -19,24 +19,25 @@
 
   .section { padding: 16px; }
   .section-title { font-size: 14px; font-weight: 600; color: #AAA; margin-bottom: 10px; display: flex; align-items: center; gap: 8px; }
+  .section-sub { font-size: 13px; color: #666; margin-bottom: 8px; padding: 0 16px; }
   .section-divider { border: none; border-top: 2px solid #2A2D3E; margin: 4px 16px 16px; }
 
   .grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
 
-  .card { background: #1A1D2E; border-radius: 12px; padding: 14px; border: 2px solid #2A2D3E; transition: all 0.3s; cursor: pointer; position: relative; }
+  .card { background: #1A1D2E; border-radius: 12px; padding: 14px; border: 2px solid #2A2D3E; transition: all 0.3s; position: relative; }
   .card:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,0,0,0.4); }
   .card.up { border-color: #E53935; }
   .card.down { border-color: #00B900; }
   .card .symbol { font-size: 16px; font-weight: 700; text-align: center; color: #FFF; }
-  .card .price { font-size: 28px; font-weight: 700; text-align: center; margin: 8px 0 4px; }
+  .card .price { font-size: 28px; font-weight: 700; text-align: center; margin: 8px 0 4px; color: #FFF; }
   .card.up .price { color: #E53935; }
   .card.down .price { color: #00B900; }
-  .card .change-row { display: flex; justify-content: space-between; font-size: 13px; font-weight: 600; }
+  .card .change-row { display: flex; justify-content: space-between; font-size: 13px; font-weight: 600; color: #888; }
   .card.up .change-row { color: #E53935; }
   .card.down .change-row { color: #00B900; }
   .card .holding-pnl { text-align: center; font-size: 11px; margin-top: 8px; padding-top: 8px; border-top: 1px solid #2A2D3E; color: #888; }
   .card .holding-pnl span { font-weight: 700; }
-  .card .remove-btn { position: absolute; top: 6px; right: 8px; background: none; border: none; color: #444; font-size: 18px; cursor: pointer; }
+  .card .remove-btn { position: absolute; top: 6px; right: 8px; background: none; border: none; color: #444; font-size: 18px; cursor: pointer; line-height: 1; }
   .card .remove-btn:hover { color: #E53935; }
 
   .add-section { padding: 0 16px 16px; }
@@ -44,7 +45,7 @@
   .add-form input { flex: 1; background: #1A1D2E; border: 1px solid #2A2D3E; border-radius: 10px; padding: 12px 14px; color: #FFF; font-size: 14px; outline: none; }
   .add-form input:focus { border-color: #1DB954; }
   .add-form input::placeholder { color: #555; }
-  .add-btn { background: #1DB954; border: none; border-radius: 10px; padding: 12px 20px; color: #FFF; font-size: 14px; font-weight: 600; cursor: pointer; }
+  .add-btn { background: #1DB954; border: none; border-radius: 10px; padding: 12px 20px; color: #FFF; font-size: 14px; font-weight: 600; cursor: pointer; white-space: nowrap; }
   .add-btn:hover { background: #17a349; }
 
   .refresh-btn { display: flex; align-items: center; gap: 6px; background: #22253A; border: 1px solid #2A2D3E; border-radius: 8px; padding: 8px 14px; color: #AAA; font-size: 13px; cursor: pointer; margin-left: auto; }
@@ -54,8 +55,7 @@
 
   .empty-state { text-align: center; padding: 24px; color: #555; font-size: 13px; }
   .last-update { font-size: 11px; color: #555; text-align: center; padding: 12px; }
-  .loading-overlay { text-align: center; padding: 40px; color: #555; }
-  .error-msg { background: #2a1a1a; border: 1px solid #E53935; border-radius: 8px; padding: 12px; margin: 8px 0; font-size: 13px; color: #E53935; }
+  .error-msg { background: #2a1a1a; border: 1px solid #E53935; border-radius: 8px; padding: 12px; margin: 8px 16px; font-size: 13px; color: #E53935; }
 </style>
 </head>
 <body>
@@ -72,7 +72,6 @@
   <div class="summary-item"><div class="label">🇺🇸 美股</div><div class="value" id="us-pnl">--</div></div>
 </div>
 
-<!-- 持股 -->
 <div class="section">
   <div class="section-title">
     📊 持股損益
@@ -83,16 +82,16 @@
       更新
     </button>
   </div>
-  <div id="holdings-error"></div>
-  <div class="section-title" style="font-size:13px; color:#666;">🇹🇼 台股</div>
-  <div class="grid" id="tw-holdings"><div class="loading-overlay">載入中...</div></div>
-  <div class="section-title" style="font-size:13px; color:#666; margin-top:16px;">🇺🇸 美股</div>
-  <div class="grid" id="us-holdings"><div class="loading-overlay">載入中...</div></div>
 </div>
 
-<hr class="section-divider">
+<div id="error-area"></div>
+<p class="section-sub">🇹🇼 台股</p>
+<div class="grid" style="padding: 0 16px;" id="tw-holdings"><div class="empty-state">載入中...</div></div>
+<p class="section-sub" style="margin-top:16px;">🇺🇸 美股</p>
+<div class="grid" style="padding: 0 16px;" id="us-holdings"><div class="empty-state">載入中...</div></div>
 
-<!-- 追蹤個股 -->
+<hr class="section-divider" style="margin-top:20px;">
+
 <div class="section">
   <div class="section-title">🔍 追蹤個股</div>
 </div>
@@ -102,58 +101,20 @@
     <button class="add-btn" onclick="addWatch()">＋ 新增</button>
   </div>
 </div>
-<div class="section" style="padding-top:0;">
-  <div class="section-title" style="font-size:13px; color:#666;">🇹🇼 台股追蹤</div>
-  <div class="grid" id="tw-watch"></div>
-  <div class="section-title" style="font-size:13px; color:#666; margin-top:16px;">🇺🇸 美股追蹤</div>
-  <div class="grid" id="us-watch"></div>
-  <div class="empty-state" id="watch-empty">還沒有追蹤個股，在上方輸入代號新增</div>
-</div>
+<p class="section-sub">🇹🇼 台股追蹤</p>
+<div class="grid" style="padding: 0 16px;" id="tw-watch"></div>
+<p class="section-sub" style="margin-top:16px;">🇺🇸 美股追蹤</p>
+<div class="grid" style="padding: 0 16px;" id="us-watch"></div>
+<div class="empty-state" id="watch-empty">還沒有追蹤個股，在上方輸入代號新增</div>
 
 <div class="last-update" id="footer-time"></div>
 
 <script>
-const TIINGO = '6b4a954a153eccb8a553f0ad34cc8cf5ae1164ab';
 const SHEET_API = 'https://script.google.com/macros/s/AKfycbzxrGg2OGORxTnp0GH2JP8QIRV_ilEgkpzwgcbJkQCydMo2qgaaCOeenj6I6EzdixpT/exec';
+const TIINGO = '6b4a954a153eccb8a553f0ad34cc8cf5ae1164ab';
 const FX = 31.7;
 
 let watchList = JSON.parse(localStorage.getItem('mouseWatchList') || '[]');
-let holdings = [];
-
-// ==========================================
-// API 函數
-// ==========================================
-async function fetchHoldings() {
-  const res = await fetch(SHEET_API);
-  const data = await res.json();
-  return data.holdings || [];
-}
-
-async function getUSPrices(symbols) {
-  if (!symbols.length) return {};
-  try {
-    const res = await fetch(`https://api.tiingo.com/iex?tickers=${symbols.join(',')}&token=${TIINGO}`);
-    const data = await res.json();
-    const map = {};
-    data.forEach(d => { map[d.ticker.toUpperCase()] = { current: d.tngoLast || d.last, prevClose: d.prevClose }; });
-    return map;
-  } catch(e) { return {}; }
-}
-
-async function getTWPrice(symbol) {
-  for (const ex of ['tse', 'otc']) {
-    try {
-      const res = await fetch(`https://mis.twse.com.tw/stock/api/getStockInfo.jsp?ex_ch=${ex}_${symbol}.tw&json=1&delay=0`);
-      const data = await res.json();
-      if (data.msgArray && data.msgArray[0]) {
-        const d = data.msgArray[0];
-        const current = parseFloat(d.z) || parseFloat(d.o) || parseFloat(d.l);
-        if (current) return { current, prevClose: parseFloat(d.y) };
-      }
-    } catch(e) {}
-  }
-  return null;
-}
 
 // ==========================================
 // 卡片 HTML
@@ -190,52 +151,46 @@ function makeCard(symbol, current, prevClose, cost, shares, isTW, isWatch) {
 }
 
 // ==========================================
-// 主載入
+// 主載入（持股從 Apps Script 取得，含價格）
 // ==========================================
 async function loadAll() {
   const btn = document.getElementById('refresh-btn');
   btn.classList.add('spinning');
-  document.getElementById('holdings-error').innerHTML = '';
+  document.getElementById('error-area').innerHTML = '';
 
+  let holdings = [];
   try {
-    holdings = await fetchHoldings();
+    const res = await fetch(SHEET_API);
+    const data = await res.json();
+    holdings = data.holdings || [];
   } catch(e) {
-    document.getElementById('holdings-error').innerHTML = '<div class="error-msg">⚠️ 無法載入持股資料，請確認 Apps Script 部署正確</div>';
-    holdings = [];
+    document.getElementById('error-area').innerHTML = '<div class="error-msg">⚠️ 無法載入持股資料，請確認 Apps Script 部署正確</div>';
+    btn.classList.remove('spinning');
+    return;
   }
 
   const twH = holdings.filter(h => h.isTW);
   const usH = holdings.filter(h => !h.isTW);
 
-  const [usPrices, ...twResults] = await Promise.all([
-    getUSPrices(usH.map(h => h.symbol)),
-    ...twH.map(h => getTWPrice(h.symbol))
-  ]);
-
-  const twPrices = {};
-  twH.forEach((h, i) => { if (twResults[i]) twPrices[h.symbol] = twResults[i]; });
-
-  // 台股持股
+  // 台股
   let twHtml = '', twVal = 0, twCost = 0;
   twH.forEach(h => {
-    const p = twPrices[h.symbol] || (h.sheetPrice ? { current: h.sheetPrice, prevClose: null } : null);
-    if (!p) return;
-    twHtml += makeCard(h.symbol, p.current, p.prevClose, h.cost, h.shares, true, false);
-    twVal += p.current * h.shares;
+    if (!h.current) return;
+    twHtml += makeCard(h.symbol, h.current, h.prevClose, h.cost, h.shares, true, false);
+    twVal += h.current * h.shares;
     twCost += h.cost * h.shares;
   });
   document.getElementById('tw-holdings').innerHTML = twHtml || '<div class="empty-state">無台股持股</div>';
 
-  // 美股持股
+  // 美股
   let usHtml = '', usVal = 0, usCost = 0;
   usH.forEach(h => {
-    const p = usPrices[h.symbol.toUpperCase()];
-    if (!p || !p.current) return;
-    usHtml += makeCard(h.symbol, p.current, p.prevClose, h.cost, h.shares, false, false);
-    usVal += p.current * h.shares * FX;
+    if (!h.current) return;
+    usHtml += makeCard(h.symbol, h.current, h.prevClose, h.cost, h.shares, false, false);
+    usVal += h.current * h.shares * FX;
     usCost += h.cost * h.shares * FX;
   });
-  document.getElementById('us-holdings').innerHTML = usHtml || '<div class="empty-state">無法取得美股資料</div>';
+  document.getElementById('us-holdings').innerHTML = usHtml || '<div class="empty-state">無美股資料</div>';
 
   // 摘要
   const tot = twVal + usVal, totCost = twCost + usCost;
@@ -256,8 +211,34 @@ async function loadAll() {
 }
 
 // ==========================================
-// 追蹤清單
+// 追蹤清單（直接呼叫 Tiingo 和 TWSE）
 // ==========================================
+async function getUSPrices(symbols) {
+  if (!symbols.length) return {};
+  try {
+    const res = await fetch(`https://api.tiingo.com/iex?tickers=${symbols.join(',')}&token=${TIINGO}`);
+    const data = await res.json();
+    const map = {};
+    data.forEach(d => { map[d.ticker.toUpperCase()] = { current: d.tngoLast || d.last, prevClose: d.prevClose }; });
+    return map;
+  } catch(e) { return {}; }
+}
+
+async function getTWPrice(symbol) {
+  for (const ex of ['tse', 'otc']) {
+    try {
+      const res = await fetch(`https://mis.twse.com.tw/stock/api/getStockInfo.jsp?ex_ch=${ex}_${symbol}.tw&json=1&delay=0`);
+      const data = await res.json();
+      if (data.msgArray && data.msgArray[0]) {
+        const d = data.msgArray[0];
+        const current = parseFloat(d.z) || parseFloat(d.o) || parseFloat(d.l);
+        if (current) return { current, prevClose: parseFloat(d.y) };
+      }
+    } catch(e) {}
+  }
+  return null;
+}
+
 async function loadWatch() {
   if (!watchList.length) {
     document.getElementById('tw-watch').innerHTML = '';
@@ -278,17 +259,17 @@ async function loadWatch() {
   twW.forEach((w, i) => {
     const p = twResults[i];
     twHtml += p ? makeCard(w.symbol, p.current, p.prevClose, null, null, true, true)
-                : `<div class="card"><button class="remove-btn" onclick="removeWatch('${w.symbol}')">×</button><div class="symbol">${w.symbol}</div><div class="price" style="color:#555">--</div></div>`;
+                : `<div class="card"><button class="remove-btn" onclick="removeWatch('${w.symbol}')">×</button><div class="symbol">${w.symbol}</div><div class="price" style="color:#555">--</div><div class="change-row"><span>--</span><span>--</span></div></div>`;
   });
-  document.getElementById('tw-watch').innerHTML = twHtml || '<div style="color:#555;font-size:13px;padding:8px;">尚無台股追蹤</div>';
+  document.getElementById('tw-watch').innerHTML = twHtml || '<div style="color:#555;font-size:13px;padding:8px 0;">尚無台股追蹤</div>';
 
   let usHtml = '';
   usW.forEach(w => {
     const p = usPrices[w.symbol.toUpperCase()];
     usHtml += (p && p.current) ? makeCard(w.symbol, p.current, p.prevClose, null, null, false, true)
-                                : `<div class="card"><button class="remove-btn" onclick="removeWatch('${w.symbol}')">×</button><div class="symbol">${w.symbol}</div><div class="price" style="color:#555">--</div></div>`;
+                                : `<div class="card"><button class="remove-btn" onclick="removeWatch('${w.symbol}')">×</button><div class="symbol">${w.symbol}</div><div class="price" style="color:#555">--</div><div class="change-row"><span>--</span><span>--</span></div></div>`;
   });
-  document.getElementById('us-watch').innerHTML = usHtml || '<div style="color:#555;font-size:13px;padding:8px;">尚無美股追蹤</div>';
+  document.getElementById('us-watch').innerHTML = usHtml || '<div style="color:#555;font-size:13px;padding:8px 0;">尚無美股追蹤</div>';
 }
 
 async function addWatch() {
