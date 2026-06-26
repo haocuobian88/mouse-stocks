@@ -89,15 +89,12 @@
 </div>
 <div class="add-section">
   <div class="add-form">
-    <input type="text" id="watch-input" placeholder="輸入代號，如 NVDA 或 2454" onkeydown="if(event.key==='Enter') addWatch()">
+    <input type="text" id="watch-input" placeholder="輸入代號，如 NVDA、2330、ASTS..." onkeydown="if(event.key==='Enter') addWatch()">
     <button class="add-btn" onclick="addWatch()">＋ 新增</button>
   </div>
 </div>
-<p class="section-sub">🇹🇼 台股追蹤</p>
-<div class="grid" id="tw-watch"></div>
-<p class="section-sub" style="margin-top:16px;">🇺🇸 美股追蹤</p>
-<div class="grid" id="us-watch"></div>
-<div class="empty-state" id="watch-empty">還沒有追蹤個股，在上方輸入代號新增</div>
+<div class="grid" id="watch-grid"></div>
+<div class="empty-state" id="watch-empty">還沒有追蹤個股，在上方輸入代號新增<br><small style="color:#444;margin-top:4px;display:block;">台股輸入數字代號（如 2330）、美股輸入英文代號（如 NVDA）</small></div>
 <div class="last-update" id="footer-time"></div>
 
 <script>
@@ -181,8 +178,7 @@ async function loadAll() {
 
 async function loadWatch() {
   if (!watchList.length) {
-    document.getElementById('tw-watch').innerHTML = '';
-    document.getElementById('us-watch').innerHTML = '';
+    document.getElementById('watch-grid').innerHTML = '';
     document.getElementById('watch-empty').style.display = 'block';
     return;
   }
@@ -194,24 +190,14 @@ async function loadWatch() {
     prices = await res.json();
   } catch(e) {}
 
-  const twW = watchList.filter(w => w.isTW);
-  const usW = watchList.filter(w => !w.isTW);
-
-  let twHtml = '';
-  twW.forEach(w => {
+  let html = '';
+  watchList.forEach(w => {
     const p = prices[w.symbol];
-    twHtml += p ? makeCard(w.symbol, p.current, p.prevClose, null, null, true, true)
-                : `<div class="card"><button class="remove-btn" onclick="removeWatch('${w.symbol}')">×</button><div class="symbol">${w.symbol}</div><div class="price" style="color:#555">--</div><div class="change-row"><span>--</span><span>--</span></div></div>`;
+    const isTW = w.isTW;
+    html += (p && p.current) ? makeCard(w.symbol, p.current, p.prevClose, null, null, isTW, true)
+                              : `<div class="card"><button class="remove-btn" onclick="removeWatch('${w.symbol}')">×</button><div class="symbol">${w.symbol}</div><div class="price" style="color:#555">--</div><div class="change-row"><span>--</span><span>--</span></div></div>`;
   });
-  document.getElementById('tw-watch').innerHTML = twHtml || '<div style="color:#555;font-size:13px;padding:8px 0;">尚無台股追蹤</div>';
-
-  let usHtml = '';
-  usW.forEach(w => {
-    const p = prices[w.symbol];
-    usHtml += (p && p.current) ? makeCard(w.symbol, p.current, p.prevClose, null, null, false, true)
-                                : `<div class="card"><button class="remove-btn" onclick="removeWatch('${w.symbol}')">×</button><div class="symbol">${w.symbol}</div><div class="price" style="color:#555">--</div><div class="change-row"><span>--</span><span>--</span></div></div>`;
-  });
-  document.getElementById('us-watch').innerHTML = usHtml || '<div style="color:#555;font-size:13px;padding:8px 0;">尚無美股追蹤</div>';
+  document.getElementById('watch-grid').innerHTML = html;
 }
 
 async function addWatch() {
