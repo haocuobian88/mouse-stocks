@@ -7,23 +7,18 @@
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; }
   body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #0F1117; color: #FFF; min-height: 100vh; }
-
   .header { background: linear-gradient(135deg, #1DB954, #158a3e); padding: 20px; text-align: center; }
   .header h1 { font-size: 24px; font-weight: 700; }
   .header p { font-size: 13px; opacity: 0.8; margin-top: 4px; }
-
   .summary-bar { display: flex; gap: 10px; padding: 14px; background: #1A1D2E; border-bottom: 1px solid #2A2D3E; overflow-x: auto; }
   .summary-item { flex: 1; min-width: 110px; background: #22253A; border-radius: 10px; padding: 10px; text-align: center; }
   .summary-item .label { font-size: 11px; color: #888; margin-bottom: 4px; }
   .summary-item .value { font-size: 16px; font-weight: 700; }
-
   .section { padding: 16px; }
   .section-title { font-size: 14px; font-weight: 600; color: #AAA; margin-bottom: 10px; display: flex; align-items: center; gap: 8px; }
   .section-sub { font-size: 13px; color: #666; margin-bottom: 8px; padding: 0 16px; }
   .section-divider { border: none; border-top: 2px solid #2A2D3E; margin: 4px 16px 16px; }
-
-  .grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
-
+  .grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; padding: 0 16px; }
   .card { background: #1A1D2E; border-radius: 12px; padding: 14px; border: 2px solid #2A2D3E; transition: all 0.3s; position: relative; }
   .card:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,0,0,0.4); }
   .card.up { border-color: #E53935; }
@@ -39,7 +34,6 @@
   .card .holding-pnl span { font-weight: 700; }
   .card .remove-btn { position: absolute; top: 6px; right: 8px; background: none; border: none; color: #444; font-size: 18px; cursor: pointer; line-height: 1; }
   .card .remove-btn:hover { color: #E53935; }
-
   .add-section { padding: 0 16px 16px; }
   .add-form { display: flex; gap: 8px; }
   .add-form input { flex: 1; background: #1A1D2E; border: 1px solid #2A2D3E; border-radius: 10px; padding: 12px 14px; color: #FFF; font-size: 14px; outline: none; }
@@ -47,12 +41,10 @@
   .add-form input::placeholder { color: #555; }
   .add-btn { background: #1DB954; border: none; border-radius: 10px; padding: 12px 20px; color: #FFF; font-size: 14px; font-weight: 600; cursor: pointer; white-space: nowrap; }
   .add-btn:hover { background: #17a349; }
-
   .refresh-btn { display: flex; align-items: center; gap: 6px; background: #22253A; border: 1px solid #2A2D3E; border-radius: 8px; padding: 8px 14px; color: #AAA; font-size: 13px; cursor: pointer; margin-left: auto; }
   .refresh-btn:hover { color: #FFF; border-color: #1DB954; }
   .refresh-btn.spinning svg { animation: spin 1s linear infinite; }
   @keyframes spin { to { transform: rotate(360deg); } }
-
   .empty-state { text-align: center; padding: 24px; color: #555; font-size: 13px; }
   .last-update { font-size: 11px; color: #555; text-align: center; padding: 12px; }
   .error-msg { background: #2a1a1a; border: 1px solid #E53935; border-radius: 8px; padding: 12px; margin: 8px 16px; font-size: 13px; color: #E53935; }
@@ -86,9 +78,9 @@
 
 <div id="error-area"></div>
 <p class="section-sub">🇹🇼 台股</p>
-<div class="grid" style="padding: 0 16px;" id="tw-holdings"><div class="empty-state">載入中...</div></div>
+<div class="grid" id="tw-holdings"><div class="empty-state" style="grid-column:span 2">載入中...</div></div>
 <p class="section-sub" style="margin-top:16px;">🇺🇸 美股</p>
-<div class="grid" style="padding: 0 16px;" id="us-holdings"><div class="empty-state">載入中...</div></div>
+<div class="grid" id="us-holdings"><div class="empty-state" style="grid-column:span 2">載入中...</div></div>
 
 <hr class="section-divider" style="margin-top:20px;">
 
@@ -102,34 +94,27 @@
   </div>
 </div>
 <p class="section-sub">🇹🇼 台股追蹤</p>
-<div class="grid" style="padding: 0 16px;" id="tw-watch"></div>
+<div class="grid" id="tw-watch"></div>
 <p class="section-sub" style="margin-top:16px;">🇺🇸 美股追蹤</p>
-<div class="grid" style="padding: 0 16px;" id="us-watch"></div>
+<div class="grid" id="us-watch"></div>
 <div class="empty-state" id="watch-empty">還沒有追蹤個股，在上方輸入代號新增</div>
-
 <div class="last-update" id="footer-time"></div>
 
 <script>
-const SHEET_API = 'https://script.google.com/macros/s/AKfycbzxrGg2OGORxTnp0GH2JP8QIRV_ilEgkpzwgcbJkQCydMo2qgaaCOeenj6I6EzdixpT/exec';
-const TIINGO = '6b4a954a153eccb8a553f0ad34cc8cf5ae1164ab';
+// 所有 API 都透過 Apps Script 中轉，解決 CORS 問題
+const API = 'https://script.google.com/macros/s/AKfycbzxrGg2OGORxTnp0GH2JP8QIRV_ilEgkpzwgcbJkQCydMo2qgaaCOeenj6I6EzdixpT/exec';
 const FX = 31.7;
-
 let watchList = JSON.parse(localStorage.getItem('mouseWatchList') || '[]');
 
-// ==========================================
-// 卡片 HTML
-// ==========================================
 function makeCard(symbol, current, prevClose, cost, shares, isTW, isWatch) {
   const diff = (prevClose && current) ? (current - prevClose) : null;
   const pct = (diff && prevClose) ? (diff / prevClose * 100) : null;
   const isUp = diff !== null ? diff >= 0 : null;
   const cls = isUp === null ? '' : isUp ? 'up' : 'down';
   const arrow = isUp === null ? '' : isUp ? '▲' : '▼';
-  const clr = isUp === null ? '#888' : isUp ? '#E53935' : '#00B900';
   const amt = diff !== null ? Math.abs(diff).toFixed(isTW ? 0 : 2) : '--';
   const pctStr = pct !== null ? Math.abs(pct).toFixed(2) + '%' : '--';
   const priceStr = current ? current.toFixed(2) : '--';
-
   let pnlHtml = '';
   if (!isWatch && cost && shares && current) {
     const pnlPct = ((current - cost) / cost * 100);
@@ -139,40 +124,27 @@ function makeCard(symbol, current, prevClose, cost, shares, isTW, isWatch) {
     const cur = isTW ? 'NT$' : '$';
     pnlHtml = `<div class="holding-pnl">持有 <span style="color:${pc}">${ps}${pnlPct.toFixed(2)}%</span> · <span style="color:${pc}">${ps}${cur}${Math.abs(pnlAmt).toLocaleString('zh-TW',{maximumFractionDigits:0})}</span></div>`;
   }
-
   const rmBtn = isWatch ? `<button class="remove-btn" onclick="removeWatch('${symbol}')">×</button>` : '';
-
-  return `<div class="card ${cls}">${rmBtn}
-    <div class="symbol">${symbol}</div>
-    <div class="price">${priceStr}</div>
-    <div class="change-row"><span>${arrow} ${amt}</span><span>${pctStr}</span></div>
-    ${pnlHtml}
-  </div>`;
+  return `<div class="card ${cls}">${rmBtn}<div class="symbol">${symbol}</div><div class="price">${priceStr}</div><div class="change-row"><span>${arrow} ${amt}</span><span>${pctStr}</span></div>${pnlHtml}</div>`;
 }
 
-// ==========================================
-// 主載入（持股從 Apps Script 取得，含價格）
-// ==========================================
 async function loadAll() {
   const btn = document.getElementById('refresh-btn');
   btn.classList.add('spinning');
   document.getElementById('error-area').innerHTML = '';
-
   let holdings = [];
   try {
-    const res = await fetch(SHEET_API);
+    const res = await fetch(API);
     const data = await res.json();
     holdings = data.holdings || [];
   } catch(e) {
-    document.getElementById('error-area').innerHTML = '<div class="error-msg">⚠️ 無法載入持股資料，請確認 Apps Script 部署正確</div>';
+    document.getElementById('error-area').innerHTML = '<div class="error-msg">⚠️ 無法載入持股資料，請確認 Apps Script 已部署</div>';
     btn.classList.remove('spinning');
     return;
   }
 
   const twH = holdings.filter(h => h.isTW);
   const usH = holdings.filter(h => !h.isTW);
-
-  // 台股
   let twHtml = '', twVal = 0, twCost = 0;
   twH.forEach(h => {
     if (!h.current) return;
@@ -180,9 +152,8 @@ async function loadAll() {
     twVal += h.current * h.shares;
     twCost += h.cost * h.shares;
   });
-  document.getElementById('tw-holdings').innerHTML = twHtml || '<div class="empty-state">無台股持股</div>';
+  document.getElementById('tw-holdings').innerHTML = twHtml || '<div class="empty-state" style="grid-column:span 2">無台股持股</div>';
 
-  // 美股
   let usHtml = '', usVal = 0, usCost = 0;
   usH.forEach(h => {
     if (!h.current) return;
@@ -190,9 +161,8 @@ async function loadAll() {
     usVal += h.current * h.shares * FX;
     usCost += h.cost * h.shares * FX;
   });
-  document.getElementById('us-holdings').innerHTML = usHtml || '<div class="empty-state">無美股資料</div>';
+  document.getElementById('us-holdings').innerHTML = usHtml || '<div class="empty-state" style="grid-column:span 2">無美股資料</div>';
 
-  // 摘要
   const tot = twVal + usVal, totCost = twCost + usCost;
   const totPnl = tot - totCost, twPnl = twVal - twCost, usPnl = usVal - usCost;
   const fmt = v => (v >= 0 ? '+' : '') + (v / 10000).toFixed(1) + '萬';
@@ -203,40 +173,10 @@ async function loadAll() {
   document.getElementById('us-pnl').innerHTML = `<span style="color:${c(usPnl)}">${fmt(usPnl)}</span>`;
 
   await loadWatch();
-
   const now = new Date().toLocaleString('zh-TW', { timeZone: 'Asia/Taipei' });
   document.getElementById('last-update').textContent = `更新：${now}`;
   document.getElementById('footer-time').textContent = `最後更新：${now}`;
   btn.classList.remove('spinning');
-}
-
-// ==========================================
-// 追蹤清單（直接呼叫 Tiingo 和 TWSE）
-// ==========================================
-async function getUSPrices(symbols) {
-  if (!symbols.length) return {};
-  try {
-    const res = await fetch(`https://api.tiingo.com/iex?tickers=${symbols.join(',')}&token=${TIINGO}`);
-    const data = await res.json();
-    const map = {};
-    data.forEach(d => { map[d.ticker.toUpperCase()] = { current: d.tngoLast || d.last, prevClose: d.prevClose }; });
-    return map;
-  } catch(e) { return {}; }
-}
-
-async function getTWPrice(symbol) {
-  for (const ex of ['tse', 'otc']) {
-    try {
-      const res = await fetch(`https://mis.twse.com.tw/stock/api/getStockInfo.jsp?ex_ch=${ex}_${symbol}.tw&json=1&delay=0`);
-      const data = await res.json();
-      if (data.msgArray && data.msgArray[0]) {
-        const d = data.msgArray[0];
-        const current = parseFloat(d.z) || parseFloat(d.o) || parseFloat(d.l);
-        if (current) return { current, prevClose: parseFloat(d.y) };
-      }
-    } catch(e) {}
-  }
-  return null;
 }
 
 async function loadWatch() {
@@ -247,17 +187,19 @@ async function loadWatch() {
     return;
   }
   document.getElementById('watch-empty').style.display = 'none';
+  const symbols = watchList.map(w => w.symbol).join(',');
+  let prices = {};
+  try {
+    const res = await fetch(API + '?watch=' + symbols);
+    prices = await res.json();
+  } catch(e) {}
 
   const twW = watchList.filter(w => w.isTW);
   const usW = watchList.filter(w => !w.isTW);
-  const [usPrices, ...twResults] = await Promise.all([
-    getUSPrices(usW.map(w => w.symbol)),
-    ...twW.map(w => getTWPrice(w.symbol))
-  ]);
 
   let twHtml = '';
-  twW.forEach((w, i) => {
-    const p = twResults[i];
+  twW.forEach(w => {
+    const p = prices[w.symbol];
     twHtml += p ? makeCard(w.symbol, p.current, p.prevClose, null, null, true, true)
                 : `<div class="card"><button class="remove-btn" onclick="removeWatch('${w.symbol}')">×</button><div class="symbol">${w.symbol}</div><div class="price" style="color:#555">--</div><div class="change-row"><span>--</span><span>--</span></div></div>`;
   });
@@ -265,7 +207,7 @@ async function loadWatch() {
 
   let usHtml = '';
   usW.forEach(w => {
-    const p = usPrices[w.symbol.toUpperCase()];
+    const p = prices[w.symbol];
     usHtml += (p && p.current) ? makeCard(w.symbol, p.current, p.prevClose, null, null, false, true)
                                 : `<div class="card"><button class="remove-btn" onclick="removeWatch('${w.symbol}')">×</button><div class="symbol">${w.symbol}</div><div class="price" style="color:#555">--</div><div class="change-row"><span>--</span><span>--</span></div></div>`;
   });
@@ -277,8 +219,7 @@ async function addWatch() {
   const symbol = input.value.trim().toUpperCase();
   if (!symbol) return;
   if (watchList.find(w => w.symbol === symbol)) { alert(symbol + ' 已在追蹤清單'); return; }
-  const isTW = /^\d+$/.test(symbol);
-  watchList.push({ symbol, isTW });
+  watchList.push({ symbol, isTW: /^\d+$/.test(symbol) });
   localStorage.setItem('mouseWatchList', JSON.stringify(watchList));
   input.value = '';
   await loadWatch();
